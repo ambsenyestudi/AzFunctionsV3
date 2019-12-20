@@ -7,13 +7,20 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using DI.Az.Func.V3.App.Services;
 
 namespace DI.Az.Func.V3
 {
-    public static class Function1
+    public class GreetingFunction
     {
-        [FunctionName("Function1")]
-        public static async Task<IActionResult> Run(
+        private IGreetingService greetingService;
+
+        public GreetingFunction(IGreetingService greetingService)
+        {
+            this.greetingService = greetingService;
+        }
+        [FunctionName("Greeting")]
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
@@ -26,7 +33,7 @@ namespace DI.Az.Func.V3
             name = name ?? data?.name;
 
             return name != null
-                ? (ActionResult)new OkObjectResult($"Hello, {name}")
+                ? (ActionResult)new OkObjectResult(greetingService.Greet(name))
                 : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
         }
     }
